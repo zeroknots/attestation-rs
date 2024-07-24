@@ -1,0 +1,28 @@
+{
+  "title": "FoobarModule",
+  "auditor": {
+    "name": "audit corp",
+    "uri": "http://audit.corp",
+    "authors": ["author1", "author2"]
+  },
+  "reportUrl": "http://audit.corp/report",
+  "moduleAttributes": {
+    "moduleAddress": "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48",
+    "globalAttributes": {
+      "moduleOwnerCantRug": false,
+      "upgradeable": false,
+      "pausable": false,
+      "licensedModule": true
+    },
+    "validatorAttributes": {
+      "classifications": [1]
+    },
+    "executorAttributes": {
+      "handlesUserAssets": true,
+      "noDelegateCall": true,
+      "classifications": [1]
+    },
+    "fallbackAttributes": {},
+    "hookAttributes": {}
+  }
+}
