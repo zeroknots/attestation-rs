@@ -8,7 +8,6 @@
   "reportUrl": "http://audit.corp/report",
   "moduleAttributes": {
     "moduleAddress": "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48",
-    "initCodeHash": "0x1234567890abcdef",
     "globalAttributes": {
       "reentrancyProtection": true,
       "importantDataValidation": true,
@@ -22,35 +21,27 @@
       "uninstallCleanUp": true
     },
     "validatorAttributes": {
-      "classifications": {
-        "unscopedValidator": true,
-        "recoveryModule": false,
-        "multiplexer": false
-      }
+      "unscopedValidator": true,
+      "recoveryModule": false,
+      "multiplexer": false
     },
     "executorAttributes": {
       "handlesUserAssets": true,
       "noDelegateCall": true,
-      "classifications": {
-        "triggeredByAccount": true,
-        "triggeredByRelayer": false,
-        "deterministicExecution": true
-      }
+      "triggeredByAccount": true,
+      "triggeredByRelayer": false,
+      "deterministicExecution": true
     },
     "fallbackAttributes": {
-      "classifications": {
-        "compatibilityFeature": false,
-        "callbacks": true
-      }
+      "compatibilityFeature": false,
+      "callbacks": true
     },
     "hookAttributes": {
-      "classifications": {
-        "defaultAllow": true,
-        "defaultDeny": false,
-        "accessControl": true,
-        "moduleControl": false,
-        "userControl": false
-      }
+      "defaultAllow": true,
+      "defaultDeny": false,
+      "accessControl": true,
+      "moduleControl": false,
+      "userControl": false
     },
     "externalDependency": {
       "oracle": true,

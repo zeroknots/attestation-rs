@@ -5,7 +5,6 @@ use std::fs;
 use std::path::PathBuf;
 use std::str::FromStr;
 
-
 // JSON input structs
 #[derive(Debug, Serialize, Deserialize)]
 pub struct Input {
@@ -66,11 +65,6 @@ pub struct JsonGlobalAttributes {
 
 #[derive(Debug, Serialize, Deserialize)]
 pub struct JsonValidatorAttributes {
-    pub classifications: JsonValidatorClassifications,
-}
-
-#[derive(Debug, Serialize, Deserialize)]
-pub struct JsonValidatorClassifications {
     #[serde(rename = "unscopedValidator")]
     pub unscoped_validator: bool,
     #[serde(rename = "recoveryModule")]
@@ -84,11 +78,7 @@ pub struct JsonExecutorAttributes {
     pub handles_user_assets: bool,
     #[serde(rename = "noDelegateCall")]
     pub no_delegate_call: bool,
-    pub classifications: JsonExecutorClassifications,
-}
 
-#[derive(Debug, Serialize, Deserialize)]
-pub struct JsonExecutorClassifications {
     #[serde(rename = "triggeredByAccount")]
     pub triggered_by_account: bool,
     #[serde(rename = "triggeredByRelayer")]
@@ -99,11 +89,6 @@ pub struct JsonExecutorClassifications {
 
 #[derive(Debug, Serialize, Deserialize)]
 pub struct JsonFallbackAttributes {
-    pub classifications: JsonFallbackClassifications,
-}
-
-#[derive(Debug, Serialize, Deserialize)]
-pub struct JsonFallbackClassifications {
     #[serde(rename = "compatibilityFeature")]
     pub compatibility_feature: bool,
     pub callbacks: bool,
@@ -111,11 +96,6 @@ pub struct JsonFallbackClassifications {
 
 #[derive(Debug, Serialize, Deserialize)]
 pub struct JsonHookAttributes {
-    pub classifications: JsonHookClassifications,
-}
-
-#[derive(Debug, Serialize, Deserialize)]
-pub struct JsonHookClassifications {
     #[serde(rename = "defaultAllow")]
     pub default_allow: bool,
     #[serde(rename = "defaultDeny")]
@@ -145,5 +125,3 @@ pub struct JsonExternalDependency {
     #[serde(rename = "ercDeps")]
     pub erc_deps: Vec<u16>,
 }
-
-
