@@ -2,7 +2,6 @@ use clap::Parser;
 use std::fs;
 use std::path::PathBuf;
 mod abi;
-mod structs;
 mod types;
 use crate::abi::ParseAttributes;
 use crate::types::Input;
