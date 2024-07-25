@@ -69,7 +69,7 @@ pub struct JsonValidatorAttributes {
     pub classifications: JsonValidatorClassifications,
 }
 
-#[derive(Clone, Debug, Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize)]
 pub struct JsonValidatorClassifications {
     #[serde(rename = "unscopedValidator")]
     pub unscoped_validator: bool,
