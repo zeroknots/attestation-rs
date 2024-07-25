@@ -1,17 +1,10 @@
-use alloy_primitives::{Address, Bytes};
 use clap::Parser;
-use serde::{Deserialize, Serialize};
 use std::fs;
 use std::path::PathBuf;
-use std::str::FromStr;
 mod abi;
 mod structs;
 mod types;
-use crate::abi::{
-    AuditSummary, Auditor, ERC7579ModuleType, ModuleAttributes, ModuleTypeAttributes,
-    PackableAttributes, Signature, SignatureType,
-    ParseAttributes
-};
+use crate::abi::ParseAttributes;
 use crate::types::Input;
 
 #[derive(Parser, Debug)]

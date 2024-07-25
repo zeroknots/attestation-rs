@@ -1,8 +1,5 @@
-use alloy_primitives::{keccak256, Address, Bytes, U256};
-use alloy_sol_types::{sol, EventTopic};
-use alloy_sol_types::{sol_data::*, SolType};
-use core::hash::Hash;
-use std::str::FromStr;
+use alloy_primitives::Bytes;
+use alloy_sol_types::sol;
 
 use crate::types::{
     JsonExecutorAttributes, JsonFallbackAttributes, JsonGlobalAttributes, JsonHookAttributes,
