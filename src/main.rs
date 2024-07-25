@@ -7,6 +7,7 @@ use std::path::PathBuf;
 use std::str::FromStr;
 mod types;
 mod abi;
+mod structs;
 use crate::types::Input;
 use crate::abi::ToSol;
 
