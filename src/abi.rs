@@ -2,9 +2,10 @@ use alloy_primitives::Bytes;
 use alloy_sol_types::sol;
 
 use crate::types::{
-    JsonExecutorAttributes, JsonFallbackAttributes, JsonGlobalAttributes, JsonHookAttributes,
-    JsonModuleAttributes, JsonValidatorAttributes, JsonExternalDependency
+    JsonExecutorAttributes, JsonExternalDependency, JsonFallbackAttributes, JsonGlobalAttributes,
+    JsonHookAttributes, JsonModuleAttributes, JsonValidatorAttributes,
 };
+use std::error::Error;
 
 sol! {
 
@@ -82,6 +83,8 @@ struct ModuleAttributes {
     address moduleAddress;
     bytes packedAttributes;
     ModuleTypeAttributes[] typeAttributes;
+    bytes packedExternalDependency;
+    // uint16 ercDeps;
 }
 
 #[derive(Debug)]
@@ -117,6 +120,7 @@ struct AuditSummary {
 
 pub trait PackableAttributes {
     fn pack(&self) -> Bytes;
+    fn unpack(bytes: &Bytes) -> Result<Box<Self>, Box<dyn Error>>;
 }
 
 impl PackableAttributes for JsonGlobalAttributes {
@@ -135,6 +139,23 @@ impl PackableAttributes for JsonGlobalAttributes {
         ];
         Bytes::from(list)
     }
+    fn unpack(bytes: &Bytes) -> Result<Box<Self>, Box<dyn Error>> {
+        if bytes.len() != 10 {
+            return Err("Invalid byte length for JsonGlobalAttributes".into());
+        }
+        Ok(Box::new(JsonGlobalAttributes {
+            reentrancy_protection: bytes[0] != 0,
+            important_data_validation: bytes[1] != 0,
+            input_manipulation_protection: bytes[2] != 0,
+            emits_events: bytes[3] != 0,
+            module_owner_cant_rug: bytes[4] != 0,
+            upgradeable: bytes[5] != 0,
+            pausable: bytes[6] != 0,
+            licensed_module: bytes[7] != 0,
+            erc7562_storage_compliant: bytes[8] != 0,
+            uninstall_clean_up: bytes[9] != 0,
+        }))
+    }
 }
 
 impl PackableAttributes for JsonValidatorAttributes {
@@ -147,11 +168,23 @@ impl PackableAttributes for JsonValidatorAttributes {
 
         Bytes::from(list)
     }
+    fn unpack(bytes: &Bytes) -> Result<Box<Self>, Box<dyn Error>> {
+        if bytes.len() != 3 {
+            return Err("Invalid byte length for JsonValidatorAttributes".into());
+        }
+        Ok(Box::new(JsonValidatorAttributes {
+            unscoped_validator: bytes[0] != 0,
+            recovery_module: bytes[1] != 0,
+            multiplexer: bytes[2] != 0,
+        }))
+    }
 }
 
 impl PackableAttributes for JsonExecutorAttributes {
     fn pack(&self) -> Bytes {
         let list = vec![
+            self.handles_user_assets as u8,
+            self.no_delegate_call as u8,
             self.triggered_by_account as u8,
             self.triggered_by_relayer as u8,
             self.deterministic_execution as u8,
@@ -159,15 +192,34 @@ impl PackableAttributes for JsonExecutorAttributes {
 
         Bytes::from(list)
     }
+    fn unpack(bytes: &Bytes) -> Result<Box<Self>, Box<dyn Error>> {
+        if bytes.len() != 3 {
+            return Err("Invalid byte length for JsonExecutorAttributes".into());
+        }
+        Ok(Box::new(JsonExecutorAttributes {
+            handles_user_assets: bytes[0] != 0,
+            no_delegate_call: bytes[1] != 0,
+            triggered_by_account: bytes[2] != 0,
+            triggered_by_relayer: bytes[3] != 0,
+            deterministic_execution: bytes[4] != 0,
+        }))
+    }
 }
 
 impl PackableAttributes for JsonFallbackAttributes {
     fn pack(&self) -> Bytes {
-        let list = vec![
-            self.compatibility_feature as u8,
-            self.callbacks as u8];
+        let list = vec![self.compatibility_feature as u8, self.callbacks as u8];
 
         Bytes::from(list)
+    }
+    fn unpack(bytes: &Bytes) -> Result<Box<Self>, Box<dyn Error>> {
+        if bytes.len() != 2 {
+            return Err("Invalid byte length for JsonFallbackAttributes".into());
+        }
+        Ok(Box::new(JsonFallbackAttributes {
+            compatibility_feature: bytes[0] != 0,
+            callbacks: bytes[1] != 0,
+        }))
     }
 }
 
@@ -183,13 +235,63 @@ impl PackableAttributes for JsonHookAttributes {
 
         Bytes::from(list)
     }
+    fn unpack(bytes: &Bytes) -> Result<Box<Self>, Box<dyn Error>> {
+        if bytes.len() != 5 {
+            return Err("Invalid byte length for JsonHookAttributes".into());
+        }
+        Ok(Box::new(JsonHookAttributes {
+            default_allow: bytes[0] != 0,
+            default_deny: bytes[1] != 0,
+            access_control: bytes[2] != 0,
+            module_control: bytes[3] != 0,
+            user_control: bytes[4] != 0,
+        }))
+    }
+}
+
+impl PackableAttributes for JsonExternalDependency {
+    fn pack(&self) -> Bytes {
+        let list = vec![
+            self.oracle as u8,
+            self.bridges as u8,
+            self.dexs as u8,
+            self.vaults as u8,
+            self.registry as u8,
+            self.lending as u8,
+            self.liquidity_provision as u8,
+            self.governance as u8,
+            self.privacy as u8,
+            self.zk_provers as u8,
+        ];
+
+        Bytes::from(list)
+    }
+
+    fn unpack(bytes: &Bytes) -> Result<Box<Self>, Box<dyn Error>> {
+        if bytes.len() != 10 {
+            return Err("Invalid byte length for JsonExternalDependency".into());
+        }
+        Ok(Box::new(JsonExternalDependency {
+            oracle: bytes[0] != 0,
+            bridges: bytes[1] != 0,
+            dexs: bytes[2] != 0,
+            vaults: bytes[3] != 0,
+            registry: bytes[4] != 0,
+            lending: bytes[5] != 0,
+            liquidity_provision: bytes[6] != 0,
+            governance: bytes[7] != 0,
+            privacy: bytes[8] != 0,
+            zk_provers: bytes[9] != 0,
+            erc_deps: vec![],
+        }))
+    }
 }
 
 pub trait ParseAttributes {
-    fn parse(&self) -> ModuleAttributes;
+    fn encode(&self) -> ModuleAttributes;
 }
 impl ParseAttributes for JsonModuleAttributes {
-    fn parse(&self) -> ModuleAttributes {
+    fn encode(&self) -> ModuleAttributes {
         let module_attributes = ModuleAttributes {
             moduleAddress: self.module_address,
             packedAttributes: self.global_attributes.pack(),
@@ -198,7 +300,6 @@ impl ParseAttributes for JsonModuleAttributes {
                     moduleType: ERC7579ModuleType::Validator,
                     encodedAttributes: self.validator_attributes.pack(),
                 },
-
                 ModuleTypeAttributes {
                     moduleType: ERC7579ModuleType::Executor,
                     encodedAttributes: self.executor_attributes.pack(),
@@ -212,11 +313,12 @@ impl ParseAttributes for JsonModuleAttributes {
                     encodedAttributes: self.hook_attributes.pack(),
                 },
             ],
+            packedExternalDependency: self.external_dependency.pack(),
         };
+
         module_attributes
     }
 }
-
 
 #[cfg(test)]
 mod tests {
@@ -350,20 +452,43 @@ mod tests {
         let parsed = module_attrs.parse();
 
         assert_eq!(parsed.moduleAddress, Address::from([0x42; 20]));
-        assert_eq!(parsed.packedAttributes, Bytes::from(vec![1, 0, 1, 1, 0, 1, 0, 1, 0, 1]));
+        assert_eq!(
+            parsed.packedAttributes,
+            Bytes::from(vec![1, 0, 1, 1, 0, 1, 0, 1, 0, 1])
+        );
         assert_eq!(parsed.typeAttributes.len(), 4);
 
-        assert_eq!(parsed.typeAttributes[0].moduleType, ERC7579ModuleType::Validator);
-        assert_eq!(parsed.typeAttributes[0].encodedAttributes, Bytes::from(vec![1, 0, 1]));
+        assert_eq!(
+            parsed.typeAttributes[0].moduleType,
+            ERC7579ModuleType::Validator
+        );
+        assert_eq!(
+            parsed.typeAttributes[0].encodedAttributes,
+            Bytes::from(vec![1, 0, 1])
+        );
 
-        assert_eq!(parsed.typeAttributes[1].moduleType, ERC7579ModuleType::Executor);
-        assert_eq!(parsed.typeAttributes[1].encodedAttributes, Bytes::from(vec![1, 0, 1]));
+        assert_eq!(
+            parsed.typeAttributes[1].moduleType,
+            ERC7579ModuleType::Executor
+        );
+        assert_eq!(
+            parsed.typeAttributes[1].encodedAttributes,
+            Bytes::from(vec![1, 0, 1])
+        );
 
-        assert_eq!(parsed.typeAttributes[2].moduleType, ERC7579ModuleType::Fallback);
-        assert_eq!(parsed.typeAttributes[2].encodedAttributes, Bytes::from(vec![1, 0]));
+        assert_eq!(
+            parsed.typeAttributes[2].moduleType,
+            ERC7579ModuleType::Fallback
+        );
+        assert_eq!(
+            parsed.typeAttributes[2].encodedAttributes,
+            Bytes::from(vec![1, 0])
+        );
 
         assert_eq!(parsed.typeAttributes[3].moduleType, ERC7579ModuleType::Hook);
-        assert_eq!(parsed.typeAttributes[3].encodedAttributes, Bytes::from(vec![1, 0, 1, 0, 1]));
+        assert_eq!(
+            parsed.typeAttributes[3].encodedAttributes,
+            Bytes::from(vec![1, 0, 1, 0, 1])
+        );
     }
 }
-
