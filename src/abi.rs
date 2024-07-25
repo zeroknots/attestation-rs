@@ -193,7 +193,8 @@ impl PackableAttributes for JsonExecutorAttributes {
         Bytes::from(list)
     }
     fn unpack(bytes: &Bytes) -> Result<Box<Self>, Box<dyn Error>> {
-        if bytes.len() != 3 {
+        if bytes.len() != 5 {
+            // Changed from 3 to 5
             return Err("Invalid byte length for JsonExecutorAttributes".into());
         }
         Ok(Box::new(JsonExecutorAttributes {
@@ -326,7 +327,7 @@ mod tests {
     use alloy_primitives::{Address, Bytes};
 
     #[test]
-    fn test_pack_global_attributes() {
+    fn test_global_attributes_pack_unpack() {
         let global_attrs = JsonGlobalAttributes {
             reentrancy_protection: true,
             important_data_validation: false,
@@ -341,11 +342,13 @@ mod tests {
         };
 
         let packed = global_attrs.pack();
-        assert_eq!(packed, Bytes::from(vec![1, 0, 1, 1, 0, 1, 0, 1, 0, 1]));
+        let unpacked = JsonGlobalAttributes::unpack(&packed).unwrap();
+
+        assert_eq!(*unpacked, global_attrs);
     }
 
     #[test]
-    fn test_pack_validator_attributes() {
+    fn test_validator_attributes_pack_unpack() {
         let validator_attrs = JsonValidatorAttributes {
             unscoped_validator: true,
             recovery_module: false,
@@ -353,11 +356,13 @@ mod tests {
         };
 
         let packed = validator_attrs.pack();
-        assert_eq!(packed, Bytes::from(vec![1, 0, 1]));
+        let unpacked = JsonValidatorAttributes::unpack(&packed).unwrap();
+
+        assert_eq!(*unpacked, validator_attrs);
     }
 
     #[test]
-    fn test_pack_executor_attributes() {
+    fn test_executor_attributes_pack_unpack() {
         let executor_attrs = JsonExecutorAttributes {
             handles_user_assets: true,
             no_delegate_call: false,
@@ -367,22 +372,26 @@ mod tests {
         };
 
         let packed = executor_attrs.pack();
-        assert_eq!(packed, Bytes::from(vec![1, 0, 1]));
+        let unpacked = JsonExecutorAttributes::unpack(&packed).unwrap();
+
+        assert_eq!(*unpacked, executor_attrs);
     }
 
     #[test]
-    fn test_pack_fallback_attributes() {
+    fn test_fallback_attributes_pack_unpack() {
         let fallback_attrs = JsonFallbackAttributes {
             compatibility_feature: true,
             callbacks: false,
         };
 
         let packed = fallback_attrs.pack();
-        assert_eq!(packed, Bytes::from(vec![1, 0]));
+        let unpacked = JsonFallbackAttributes::unpack(&packed).unwrap();
+
+        assert_eq!(*unpacked, fallback_attrs);
     }
 
     #[test]
-    fn test_pack_hook_attributes() {
+    fn test_hook_attributes_pack_unpack() {
         let hook_attrs = JsonHookAttributes {
             default_allow: true,
             default_deny: false,
@@ -392,11 +401,35 @@ mod tests {
         };
 
         let packed = hook_attrs.pack();
-        assert_eq!(packed, Bytes::from(vec![1, 0, 1, 0, 1]));
+        let unpacked = JsonHookAttributes::unpack(&packed).unwrap();
+
+        assert_eq!(*unpacked, hook_attrs);
     }
 
     #[test]
-    fn test_parse_module_attributes() {
+    fn test_external_dependency_pack_unpack() {
+        let external_dependency = JsonExternalDependency {
+            oracle: true,
+            bridges: false,
+            dexs: true,
+            vaults: false,
+            registry: true,
+            lending: false,
+            liquidity_provision: true,
+            governance: false,
+            privacy: true,
+            zk_provers: false,
+            erc_deps: vec![],
+        };
+
+        let packed = external_dependency.pack();
+        let unpacked = JsonExternalDependency::unpack(&packed).unwrap();
+
+        assert_eq!(*unpacked, external_dependency);
+    }
+
+    #[test]
+    fn test_module_attributes_encode() {
         let module_attrs = JsonModuleAttributes {
             module_address: Address::from([0x42; 20]),
             global_attributes: JsonGlobalAttributes {
@@ -435,60 +468,94 @@ mod tests {
                 user_control: true,
             },
             external_dependency: JsonExternalDependency {
-                oracle: false,
+                oracle: true,
                 bridges: false,
-                dexs: false,
+                dexs: true,
                 vaults: false,
-                registry: false,
+                registry: true,
                 lending: false,
-                liquidity_provision: false,
+                liquidity_provision: true,
                 governance: false,
-                privacy: false,
+                privacy: true,
                 zk_provers: false,
                 erc_deps: vec![],
             },
         };
 
-        let parsed = module_attrs.parse();
+        let encoded = module_attrs.encode();
 
-        assert_eq!(parsed.moduleAddress, Address::from([0x42; 20]));
+        assert_eq!(encoded.moduleAddress, module_attrs.module_address);
         assert_eq!(
-            parsed.packedAttributes,
-            Bytes::from(vec![1, 0, 1, 1, 0, 1, 0, 1, 0, 1])
+            encoded.packedAttributes,
+            module_attrs.global_attributes.pack()
         );
-        assert_eq!(parsed.typeAttributes.len(), 4);
+        assert_eq!(
+            encoded.packedExternalDependency,
+            module_attrs.external_dependency.pack()
+        );
+        assert_eq!(encoded.typeAttributes.len(), 4);
 
         assert_eq!(
-            parsed.typeAttributes[0].moduleType,
+            encoded.typeAttributes[0].moduleType,
             ERC7579ModuleType::Validator
         );
         assert_eq!(
-            parsed.typeAttributes[0].encodedAttributes,
-            Bytes::from(vec![1, 0, 1])
+            encoded.typeAttributes[0].encodedAttributes,
+            module_attrs.validator_attributes.pack()
         );
 
         assert_eq!(
-            parsed.typeAttributes[1].moduleType,
+            encoded.typeAttributes[1].moduleType,
             ERC7579ModuleType::Executor
         );
         assert_eq!(
-            parsed.typeAttributes[1].encodedAttributes,
-            Bytes::from(vec![1, 0, 1])
+            encoded.typeAttributes[1].encodedAttributes,
+            module_attrs.executor_attributes.pack()
         );
 
         assert_eq!(
-            parsed.typeAttributes[2].moduleType,
+            encoded.typeAttributes[2].moduleType,
             ERC7579ModuleType::Fallback
         );
         assert_eq!(
-            parsed.typeAttributes[2].encodedAttributes,
-            Bytes::from(vec![1, 0])
+            encoded.typeAttributes[2].encodedAttributes,
+            module_attrs.fallback_attributes.pack()
         );
 
-        assert_eq!(parsed.typeAttributes[3].moduleType, ERC7579ModuleType::Hook);
         assert_eq!(
-            parsed.typeAttributes[3].encodedAttributes,
-            Bytes::from(vec![1, 0, 1, 0, 1])
+            encoded.typeAttributes[3].moduleType,
+            ERC7579ModuleType::Hook
         );
+        assert_eq!(
+            encoded.typeAttributes[3].encodedAttributes,
+            module_attrs.hook_attributes.pack()
+        );
+    }
+
+    #[test]
+    fn test_invalid_byte_length() {
+        // Invalid length for JsonGlobalAttributes (expects 10 bytes)
+        let invalid_global = Bytes::from(vec![0; 9]);
+        assert!(JsonGlobalAttributes::unpack(&invalid_global).is_err());
+
+        // Invalid length for JsonValidatorAttributes (expects 3 bytes)
+        let invalid_validator = Bytes::from(vec![0; 2]);
+        assert!(JsonValidatorAttributes::unpack(&invalid_validator).is_err());
+
+        // Invalid length for JsonExecutorAttributes (expects 5 bytes)
+        let invalid_executor = Bytes::from(vec![0; 4]);
+        assert!(JsonExecutorAttributes::unpack(&invalid_executor).is_err());
+
+        // Invalid length for JsonFallbackAttributes (expects 2 bytes)
+        let invalid_fallback = Bytes::from(vec![0; 1]);
+        assert!(JsonFallbackAttributes::unpack(&invalid_fallback).is_err());
+
+        // Invalid length for JsonHookAttributes (expects 5 bytes)
+        let invalid_hook = Bytes::from(vec![0; 4]);
+        assert!(JsonHookAttributes::unpack(&invalid_hook).is_err());
+
+        // Invalid length for JsonExternalDependency (expects 10 bytes)
+        let invalid_external = Bytes::from(vec![0; 9]);
+        assert!(JsonExternalDependency::unpack(&invalid_external).is_err());
     }
 }

@@ -19,7 +19,7 @@ pub struct JsonAuditor {
     pub authors: Vec<String>,
 }
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize, PartialEq)]
 pub struct JsonModuleAttributes {
     #[serde(rename = "moduleAddress")]
     pub module_address: Address,
@@ -37,7 +37,7 @@ pub struct JsonModuleAttributes {
     pub external_dependency: JsonExternalDependency,
 }
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize, PartialEq)]
 pub struct JsonGlobalAttributes {
     #[serde(rename = "reentrancyProtection")]
     pub reentrancy_protection: bool,
@@ -59,7 +59,7 @@ pub struct JsonGlobalAttributes {
     pub uninstall_clean_up: bool,
 }
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize, PartialEq)]
 pub struct JsonValidatorAttributes {
     #[serde(rename = "unscopedValidator")]
     pub unscoped_validator: bool,
@@ -68,7 +68,7 @@ pub struct JsonValidatorAttributes {
     pub multiplexer: bool,
 }
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize, PartialEq)]
 pub struct JsonExecutorAttributes {
     #[serde(rename = "handlesUserAssets")]
     pub handles_user_assets: bool,
@@ -82,14 +82,14 @@ pub struct JsonExecutorAttributes {
     pub deterministic_execution: bool,
 }
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize, PartialEq)]
 pub struct JsonFallbackAttributes {
     #[serde(rename = "compatibilityFeature")]
     pub compatibility_feature: bool,
     pub callbacks: bool,
 }
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize, PartialEq)]
 pub struct JsonHookAttributes {
     #[serde(rename = "defaultAllow")]
     pub default_allow: bool,
@@ -103,7 +103,7 @@ pub struct JsonHookAttributes {
     pub user_control: bool,
 }
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize, PartialEq)]
 pub struct JsonExternalDependency {
     pub oracle: bool,
     pub bridges: bool,
