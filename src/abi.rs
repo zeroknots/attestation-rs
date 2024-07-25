@@ -3,7 +3,7 @@ use alloy_sol_types::sol;
 
 use crate::types::{
     JsonExecutorAttributes, JsonFallbackAttributes, JsonGlobalAttributes, JsonHookAttributes,
-    JsonModuleAttributes, JsonValidatorAttributes,
+    JsonModuleAttributes, JsonValidatorAttributes, JsonExternalDependency
 };
 
 sol! {
@@ -21,6 +21,8 @@ enum ValidatorClassification {
 #[derive(Debug)]
 enum ExecutorClassification {
     None,
+    HandlesUserAssets,
+    NoDelegateCall,
     TriggerByAccount,
     TriggerByRelayer,
     DeterministicExecution
@@ -29,6 +31,8 @@ enum ExecutorClassification {
 #[derive(Debug)]
 enum FallbackClassification {
     None,
+    usesERC2771AccessControl,
+    CalledWithStaticCall,
     CompatibiltyFallback,
     Callback
 }
@@ -58,31 +62,7 @@ enum ExternalDependencyClassification {
     ZKProvers
 }
 
-#[derive(Debug)]
-struct ValidatorAttributes {
-    ValidatorClassification[] classifications;
-}
-
-#[derive(Debug)]
-struct ExecutorAttributes {
-    bool handlesUserAssets;
-    bool noDelegateCall;
-    ExecutorClassification[] classifications;
-}
-
-#[derive(Debug)]
-struct FallbackAttributes {
-    bool usesERC2771AccessControl;
-    bool calledWithStaticCall;
-    FallbackClassification[] classifications;
-}
-
-#[derive(Debug)]
-struct HookAttributes {
-    HookClassification[] classifications;
-}
-
-#[derive(Debug)]
+#[derive(Debug, PartialEq)]
 enum ERC7579ModuleType {
     None,
     Validator,
@@ -236,3 +216,154 @@ impl ParseAttributes for JsonModuleAttributes {
         module_attributes
     }
 }
+
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use alloy_primitives::{Address, Bytes};
+
+    #[test]
+    fn test_pack_global_attributes() {
+        let global_attrs = JsonGlobalAttributes {
+            reentrancy_protection: true,
+            important_data_validation: false,
+            input_manipulation_protection: true,
+            emits_events: true,
+            module_owner_cant_rug: false,
+            upgradeable: true,
+            pausable: false,
+            licensed_module: true,
+            erc7562_storage_compliant: false,
+            uninstall_clean_up: true,
+        };
+
+        let packed = global_attrs.pack();
+        assert_eq!(packed, Bytes::from(vec![1, 0, 1, 1, 0, 1, 0, 1, 0, 1]));
+    }
+
+    #[test]
+    fn test_pack_validator_attributes() {
+        let validator_attrs = JsonValidatorAttributes {
+            unscoped_validator: true,
+            recovery_module: false,
+            multiplexer: true,
+        };
+
+        let packed = validator_attrs.pack();
+        assert_eq!(packed, Bytes::from(vec![1, 0, 1]));
+    }
+
+    #[test]
+    fn test_pack_executor_attributes() {
+        let executor_attrs = JsonExecutorAttributes {
+            handles_user_assets: true,
+            no_delegate_call: false,
+            triggered_by_account: true,
+            triggered_by_relayer: false,
+            deterministic_execution: true,
+        };
+
+        let packed = executor_attrs.pack();
+        assert_eq!(packed, Bytes::from(vec![1, 0, 1]));
+    }
+
+    #[test]
+    fn test_pack_fallback_attributes() {
+        let fallback_attrs = JsonFallbackAttributes {
+            compatibility_feature: true,
+            callbacks: false,
+        };
+
+        let packed = fallback_attrs.pack();
+        assert_eq!(packed, Bytes::from(vec![1, 0]));
+    }
+
+    #[test]
+    fn test_pack_hook_attributes() {
+        let hook_attrs = JsonHookAttributes {
+            default_allow: true,
+            default_deny: false,
+            access_control: true,
+            module_control: false,
+            user_control: true,
+        };
+
+        let packed = hook_attrs.pack();
+        assert_eq!(packed, Bytes::from(vec![1, 0, 1, 0, 1]));
+    }
+
+    #[test]
+    fn test_parse_module_attributes() {
+        let module_attrs = JsonModuleAttributes {
+            module_address: Address::from([0x42; 20]),
+            global_attributes: JsonGlobalAttributes {
+                reentrancy_protection: true,
+                important_data_validation: false,
+                input_manipulation_protection: true,
+                emits_events: true,
+                module_owner_cant_rug: false,
+                upgradeable: true,
+                pausable: false,
+                licensed_module: true,
+                erc7562_storage_compliant: false,
+                uninstall_clean_up: true,
+            },
+            validator_attributes: JsonValidatorAttributes {
+                unscoped_validator: true,
+                recovery_module: false,
+                multiplexer: true,
+            },
+            executor_attributes: JsonExecutorAttributes {
+                handles_user_assets: true,
+                no_delegate_call: false,
+                triggered_by_account: true,
+                triggered_by_relayer: false,
+                deterministic_execution: true,
+            },
+            fallback_attributes: JsonFallbackAttributes {
+                compatibility_feature: true,
+                callbacks: false,
+            },
+            hook_attributes: JsonHookAttributes {
+                default_allow: true,
+                default_deny: false,
+                access_control: true,
+                module_control: false,
+                user_control: true,
+            },
+            external_dependency: JsonExternalDependency {
+                oracle: false,
+                bridges: false,
+                dexs: false,
+                vaults: false,
+                registry: false,
+                lending: false,
+                liquidity_provision: false,
+                governance: false,
+                privacy: false,
+                zk_provers: false,
+                erc_deps: vec![],
+            },
+        };
+
+        let parsed = module_attrs.parse();
+
+        assert_eq!(parsed.moduleAddress, Address::from([0x42; 20]));
+        assert_eq!(parsed.packedAttributes, Bytes::from(vec![1, 0, 1, 1, 0, 1, 0, 1, 0, 1]));
+        assert_eq!(parsed.typeAttributes.len(), 4);
+
+        assert_eq!(parsed.typeAttributes[0].moduleType, ERC7579ModuleType::Validator);
+        assert_eq!(parsed.typeAttributes[0].encodedAttributes, Bytes::from(vec![1, 0, 1]));
+
+        assert_eq!(parsed.typeAttributes[1].moduleType, ERC7579ModuleType::Executor);
+        assert_eq!(parsed.typeAttributes[1].encodedAttributes, Bytes::from(vec![1, 0, 1]));
+
+        assert_eq!(parsed.typeAttributes[2].moduleType, ERC7579ModuleType::Fallback);
+        assert_eq!(parsed.typeAttributes[2].encodedAttributes, Bytes::from(vec![1, 0]));
+
+        assert_eq!(parsed.typeAttributes[3].moduleType, ERC7579ModuleType::Hook);
+        assert_eq!(parsed.typeAttributes[3].encodedAttributes, Bytes::from(vec![1, 0, 1, 0, 1]));
+    }
+}
+

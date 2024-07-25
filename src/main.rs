@@ -1,4 +1,6 @@
+use alloy_sol_types::SolValue;
 use clap::Parser;
+use alloy_primitives::Bytes;
 use std::fs;
 use std::path::PathBuf;
 mod abi;
@@ -25,6 +27,10 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     println!("{:#?}", input);
     let abi_audit_summary = input.module_attributes.parse();
     println!("{:#?}", abi_audit_summary);
+
+    let foo = abi_audit_summary.abi_encode();
+    println!("{:?}", Bytes::from(foo));
+
 
 
     Ok(())

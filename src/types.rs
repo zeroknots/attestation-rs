@@ -1,9 +1,5 @@
-use alloy_primitives::{Address, Bytes};
-use clap::Parser;
+use alloy_primitives::Address;
 use serde::{Deserialize, Serialize};
-use std::fs;
-use std::path::PathBuf;
-use std::str::FromStr;
 
 // JSON input structs
 #[derive(Debug, Serialize, Deserialize)]
