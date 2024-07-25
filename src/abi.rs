@@ -1,9 +1,9 @@
-use alloy_primitives::Bytes;
+use alloy_primitives::{Bytes, Address, B256, keccak256};
 use alloy_sol_types::sol;
 
 use crate::types::{
     JsonExecutorAttributes, JsonExternalDependency, JsonFallbackAttributes, JsonGlobalAttributes,
-    JsonHookAttributes, JsonModuleAttributes, JsonValidatorAttributes,
+    JsonHookAttributes, JsonModuleAttributes, JsonValidatorAttributes, Input
 };
 use std::error::Error;
 
@@ -320,6 +320,59 @@ impl ParseAttributes for JsonModuleAttributes {
         module_attributes
     }
 }
+
+pub trait SignAttestation {
+    fn encode(&self, sig_type:SignatureType, signer:Address) -> AuditSummary;
+}
+
+impl SignAttestation for Input {
+    fn encode(&self, sig_type:SignatureType, signer:Address ) -> AuditSummary {
+        AuditSummary {
+            title: self.title.clone(),
+            auditor: Auditor {
+                name: self.auditor.name.clone(),
+                uri: self.auditor.uri.clone(),
+                authors: self.auditor.authors.clone(),
+            },
+            moduleAttributes: self.module_attributes.encode(),
+            signature: Signature {
+                sigType: sig_type,
+                signer,
+                signatureData: Bytes::default(), // You might want to set this to actual signature data
+            },
+        }
+    }
+}
+
+pub trait HashAuditSummary {
+
+    fn digest(&self) -> B256;
+    fn encode_for_hash(&self) -> Bytes;
+}
+
+impl HashAuditSummary for AuditSummary {
+
+     fn digest(&self) -> B256 {
+        // First, we need to ABI encode the AuditSummary
+        let encoded = self.encode_for_hash();
+        
+        // Then, we compute the Keccak-256 hash
+        keccak256(encoded)
+    }
+
+     fn encode_for_hash(&self) -> Bytes {
+        // This method should ABI encode the AuditSummary
+        // The exact implementation depends on your AuditSummary structure
+        // and how you want to encode it
+        // Here's a simplified example:
+        let mut encoded = Bytes::new();
+        // encoded.clone_from_slice(self.title.as_bytes());
+        // encoded.clone_from_slice(&self.auditor.abi_encode_packed());
+        // encoded.clone_from_slice(&self.module_attributes.abi_encode());
+        encoded
+    }
+}
+
 
 #[cfg(test)]
 mod tests {

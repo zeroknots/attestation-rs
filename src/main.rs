@@ -5,7 +5,7 @@ use std::path::PathBuf;
 use std::{fs, str::FromStr};
 mod abi;
 mod types;
-use crate::abi::ParseAttributes;
+use crate::abi::{SignatureType, ParseAttributes, SignAttestation, HashAuditSummary};
 use crate::types::Input;
 use alloy_signer::{Signer, SignerSync};
 use alloy_signer_local::PrivateKeySigner;
@@ -26,22 +26,30 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     // Read the JSON file
     let json_input = fs::read_to_string(args.input)?;
     let private_key = args.private_key;
+    // // Instantiate a signer.
+    let signer = PrivateKeySigner::from_str(&private_key)?;
 
     let input: Input = serde_json::from_str(&json_input)?;
 
-    println!("{:#?}", input);
-    let abi_audit_summary = input.module_attributes.encode();
-    println!("{:#?}", abi_audit_summary);
+    let onchain_data = input.encode(SignatureType::SECP256K1, signer.address());
+    println!("{:#?}", onchain_data);
 
-    let data_bytes = Bytes::from(abi_audit_summary.abi_encode());
-    println!("{:?}", data_bytes);
-
-    // Instantiate a signer.
-    let signer = PrivateKeySigner::from_str(&private_key)?;
-    println!("{:?}", signer.address());
-
-    let signature = signer.sign_message_sync(&data_bytes)?;
-    println!("{:?}", signature);
+    let digest = onchain_data.digest();
+    println!("{:?}", digest);
+    //
+    // println!("{:#?}", input);
+    // let abi_audit_summary = input.module_attributes.encode();
+    // println!("{:#?}", abi_audit_summary);
+    //
+    // let data_bytes = Bytes::from(abi_audit_summary.abi_encode());
+    // println!("{:?}", data_bytes);
+    //
+    // // Instantiate a signer.
+    // let signer = PrivateKeySigner::from_str(&private_key)?;
+    // println!("{:?}", signer.address());
+    //
+    // let signature = signer.sign_message_sync(&digest)?;
+    // println!("{:?}", signature);
 
     Ok(())
 }
