@@ -32,12 +32,12 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     let input: Input = serde_json::from_str(&json_input)?;
 
     let onchain_data = input.encode(SignatureType::SECP256K1, signer.address());
-    println!("{:#?}", onchain_data);
+    // println!("{:#?}", onchain_data);
     let data_bytes = Bytes::from(onchain_data.abi_encode());
     println!("{:?}", data_bytes);
 
     let digest = onchain_data.digest();
-    println!("{:?}", digest);
+    // println!("{:?}", digest);
     //
     // println!("{:#?}", input);
     // let abi_audit_summary = input.module_attributes.encode();
