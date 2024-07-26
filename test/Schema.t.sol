@@ -16,7 +16,7 @@ contract SchemaTest is Test {
     }
 
     function test_decode() public {
-        string[] memory inputs = new string[](7);
+        string[] memory inputs = new string[](9);
         inputs[0] = "cargo";
         inputs[1] = "run";
         inputs[2] = "--";
@@ -24,6 +24,8 @@ contract SchemaTest is Test {
         inputs[4] = "./attestation/example2.json";
         inputs[5] = "--private-key";
         inputs[6] = "0x7f28531d8798eb4b4488bc51cf7cec1941c20fc7ce1a3f754e67f89759e6401d";
+        inputs[7] = "--mode";
+        inputs[8] = "bytes";
 
         bytes memory data = vm.ffi(inputs);
 
@@ -33,5 +35,10 @@ contract SchemaTest is Test {
         bool ownerCantRug = (summary.moduleAttributes.packedAttributes[4] == 0x01);
         assertTrue(reentrancyProtection, "reentrancyProtection");
         assertFalse(ownerCantRug, "ownerCantRug");
+
+        bytes32 hash_from_rust = summary.signature.hash;
+
+        bytes32 hash = schema.digest(summary);
+        assertEq(hash, hash_from_rust, "hash");
     }
 }

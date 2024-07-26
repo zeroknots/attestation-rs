@@ -5,7 +5,7 @@ use std::path::PathBuf;
 use std::{fs, str::FromStr};
 mod abi;
 mod types;
-use crate::abi::{SignatureType, ParseAttributes, SignAttestation, HashAuditSummary};
+use crate::abi::{HashAuditSummary, ParseAttributes, SignAttestation, SignatureType};
 use crate::types::Input;
 use alloy_signer::{Signer, SignerSync};
 use alloy_signer_local::PrivateKeySigner;
@@ -18,6 +18,8 @@ struct Args {
     input: PathBuf,
     #[arg(short, long)]
     private_key: String,
+    #[arg(short, long)]
+    mode: String,
 }
 
 fn main() -> Result<(), Box<dyn std::error::Error>> {
@@ -26,17 +28,29 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     // Read the JSON file
     let json_input = fs::read_to_string(args.input)?;
     let private_key = args.private_key;
-    // // Instantiate a signer.
-    let signer = PrivateKeySigner::from_str(&private_key)?;
 
     let input: Input = serde_json::from_str(&json_input)?;
-
+    let signer = PrivateKeySigner::from_str(&private_key)?;
     let onchain_data = input.encode(SignatureType::SECP256K1, signer.address());
-    // println!("{:#?}", onchain_data);
-    let data_bytes = Bytes::from(onchain_data.abi_encode());
-    println!("{:?}", data_bytes);
 
-    let digest = onchain_data.digest();
+    match args.mode.as_str() {
+        "print" => {
+            println!("{:#?}", onchain_data);
+            let data_bytes = Bytes::from(onchain_data.abi_encode());
+            println!("{:?}", data_bytes);
+        }
+        "bytes" => {
+            // println!("{:#?}", onchain_data);
+            let data_bytes = Bytes::from(onchain_data.abi_encode());
+            println!("{:?}", data_bytes);
+        }
+        "sign" => {}
+        _ => {
+            println!("Invalid mode");
+        }
+    }
+    // // Instantiate a signer.
+
     // println!("{:?}", digest);
     //
     // println!("{:#?}", input);

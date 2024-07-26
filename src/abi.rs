@@ -1,9 +1,10 @@
-use alloy_primitives::{Bytes, Address, B256, keccak256};
-use alloy_sol_types::sol;
+use alloy_primitives::{keccak256, Address, Bytes, B256, U256};
+use alloy_sol_types::{sol, abi};
+use alloy_sol_types::{sol_data::*, SolValue};
 
 use crate::types::{
-    JsonExecutorAttributes, JsonExternalDependency, JsonFallbackAttributes, JsonGlobalAttributes,
-    JsonHookAttributes, JsonModuleAttributes, JsonValidatorAttributes, Input
+    Input, JsonExecutorAttributes, JsonExternalDependency, JsonFallbackAttributes,
+    JsonGlobalAttributes, JsonHookAttributes, JsonModuleAttributes, JsonValidatorAttributes,
 };
 use std::error::Error;
 
@@ -106,6 +107,7 @@ struct Signature {
     SignatureType sigType;
     address signer;
     bytes signatureData;
+    bytes32 hash;
 }
 
 #[derive(Debug)]
@@ -322,12 +324,13 @@ impl ParseAttributes for JsonModuleAttributes {
 }
 
 pub trait SignAttestation {
-    fn encode(&self, sig_type:SignatureType, signer:Address) -> AuditSummary;
+    fn encode(&self, sig_type: SignatureType, signer: Address) -> AuditSummary;
 }
 
 impl SignAttestation for Input {
-    fn encode(&self, sig_type:SignatureType, signer:Address ) -> AuditSummary {
-        AuditSummary {
+    fn encode(&self, sig_type: SignatureType, signer: Address) -> AuditSummary {
+        let  mut hash: U256 = "42".parse().unwrap();
+        let mut summary = AuditSummary {
             title: self.title.clone(),
             auditor: Auditor {
                 name: self.auditor.name.clone(),
@@ -339,40 +342,53 @@ impl SignAttestation for Input {
                 sigType: sig_type,
                 signer,
                 signatureData: Bytes::default(), // You might want to set this to actual signature data
+                hash: hash.into(),
             },
-        }
+        };
+
+        let actual_hash = summary.digest();
+
+        summary.signature.hash = actual_hash.into();
+
+        summary
+    }
+}
+
+sol! {
+    #[derive(Debug)]
+    struct Digest {
+        string title;
+        Auditor auditor;
+        ModuleAttributes moduleAttributes;
     }
 }
 
 pub trait HashAuditSummary {
-
     fn digest(&self) -> B256;
-    fn encode_for_hash(&self) -> Bytes;
+    fn encode(&self) -> Bytes;
 }
 
 impl HashAuditSummary for AuditSummary {
+    fn encode(&self) -> Bytes {
 
-     fn digest(&self) -> B256 {
-        // First, we need to ABI encode the AuditSummary
-        let encoded = self.encode_for_hash();
-        
-        // Then, we compute the Keccak-256 hash
-        keccak256(encoded)
+        let data:Digest = Digest {
+            title: self.title.clone(),
+            auditor: self.auditor.clone(),
+            moduleAttributes: self.moduleAttributes.clone(),
+        };
+
+        let encoded: Vec<u8> = Digest::abi_encode(&data);
+        Bytes::from(encoded)
+
     }
+    fn digest(&self) -> B256 {
+        // First, we need to ABI encode the AuditSummary
+        let encoded = self.encode();
 
-     fn encode_for_hash(&self) -> Bytes {
-        // This method should ABI encode the AuditSummary
-        // The exact implementation depends on your AuditSummary structure
-        // and how you want to encode it
-        // Here's a simplified example:
-        let mut encoded = Bytes::new();
-        // encoded.clone_from_slice(self.title.as_bytes());
-        // encoded.clone_from_slice(&self.auditor.abi_encode_packed());
-        // encoded.clone_from_slice(&self.module_attributes.abi_encode());
-        encoded
+        // Then, we compute the Keccak-256 hash
+        keccak256(&encoded)
     }
 }
-
 
 #[cfg(test)]
 mod tests {

@@ -86,6 +86,7 @@ struct Signature {
     SignatureType sigType;
     address signer;
     bytes signatureData;
+    bytes32 hash;
 }
 
 struct AuditSummary {
@@ -95,8 +96,21 @@ struct AuditSummary {
     Signature signature;
 }
 
+struct Digest {
+    string title;
+    Auditor auditor;
+    ModuleAttributes moduleAttributes;
+}
+
 contract Schema {
     function decode(bytes memory data) public pure returns (AuditSummary memory summary) {
         summary = abi.decode(data, (AuditSummary));
+    }
+
+    function digest(AuditSummary memory summary) public pure returns (bytes32) {
+        bytes memory data = abi.encode(
+            Digest({title: summary.title, auditor: summary.auditor, moduleAttributes: summary.moduleAttributes})
+        );
+        return keccak256(data);
     }
 }
