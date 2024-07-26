@@ -1,6 +1,11 @@
 // SPDX-License-Identifier: UNLICENSED
 pragma solidity ^0.8.13;
 
+import "solady/utils/SignatureCheckerLib.sol";
+import "solady/utils/ECDSA.sol";
+
+import "forge-std/console2.sol";
+
 enum ValidatorClassification {
     None,
     UnscopedValidator,
@@ -103,6 +108,8 @@ struct Digest {
 }
 
 contract Schema {
+    using SignatureCheckerLib for address;
+
     function decode(bytes memory data) public pure returns (AuditSummary memory summary) {
         summary = abi.decode(data, (AuditSummary));
     }
@@ -114,24 +121,30 @@ contract Schema {
         return keccak256(data);
     }
 
-    function validateSignature(AuditSummary memory summary) public pure returns (bool) {
-        if (summary.signature.signer == address(0)) {
-            return false;
-        }
-
-        if (summary.signature.sigType == SignatureType.None) {
-            return false;
-        }
-        if (summary.signature.hash == bytes32(0)) {
-            return false;
-        }
-
-        if (summary.signature.signatureData.length == 0) {
-            return false;
-        }
+    function validateSignature(AuditSummary memory summary) public view returns (bool) {
+        // if (summary.signature.signer == address(0)) {
+        //     return false;
+        // }
+        //
+        // if (summary.signature.sigType == SignatureType.None) {
+        //     return false;
+        // }
+        // if (summary.signature.hash == bytes32(0)) {
+        //     return false;
+        // }
+        //
+        // if (summary.signature.signatureData.length == 0) {
+        //     return false;
+        // }
 
         if (summary.signature.sigType == SignatureType.SECP256K1) {
-            address _signer = ECDSA.recover(summary.signature.hash, summary.signature.signatureData);
+            console2.log("SECP256K1");
+            console2.log(summary.signature.signer);
+            console2.logBytes(summary.signature.signatureData);
+            bytes32 _digest = digest(summary);
+            console2.log("hash same", _digest == summary.signature.hash);
+            address recover = ECDSA.recover(summary.signature.hash, summary.signature.signatureData);
+            console2.log(recover);
         }
     }
 }

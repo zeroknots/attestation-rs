@@ -1,5 +1,5 @@
 use alloy_primitives::{keccak256, Address, Bytes, B256, U256};
-use alloy_sol_types::{sol, abi};
+use alloy_sol_types::{abi, sol};
 use alloy_sol_types::{sol_data::*, SolValue};
 
 use crate::types::{
@@ -7,6 +7,16 @@ use crate::types::{
     JsonGlobalAttributes, JsonHookAttributes, JsonModuleAttributes, JsonValidatorAttributes,
 };
 use std::error::Error;
+
+sol! {
+
+#[derive(Debug)]
+struct PackedSig {
+bytes32 r;
+bytes32 s;
+uint8 v;
+}
+}
 
 sol! {
 
@@ -329,7 +339,7 @@ pub trait SignAttestation {
 
 impl SignAttestation for Input {
     fn encode(&self, sig_type: SignatureType, signer: Address) -> AuditSummary {
-        let  mut hash: U256 = "42".parse().unwrap();
+        let mut hash: U256 = "42".parse().unwrap();
         let mut summary = AuditSummary {
             title: self.title.clone(),
             auditor: Auditor {
@@ -361,6 +371,7 @@ sol! {
         Auditor auditor;
         ModuleAttributes moduleAttributes;
     }
+
 }
 
 pub trait HashAuditSummary {
@@ -370,8 +381,7 @@ pub trait HashAuditSummary {
 
 impl HashAuditSummary for AuditSummary {
     fn encode(&self) -> Bytes {
-
-        let data:Digest = Digest {
+        let data: Digest = Digest {
             title: self.title.clone(),
             auditor: self.auditor.clone(),
             moduleAttributes: self.moduleAttributes.clone(),
@@ -379,7 +389,6 @@ impl HashAuditSummary for AuditSummary {
 
         let encoded: Vec<u8> = Digest::abi_encode(&data);
         Bytes::from(encoded)
-
     }
     fn digest(&self) -> B256 {
         // First, we need to ABI encode the AuditSummary

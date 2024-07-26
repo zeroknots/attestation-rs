@@ -25,7 +25,7 @@ contract SchemaTest is Test {
         inputs[5] = "--private-key";
         inputs[6] = "0x7f28531d8798eb4b4488bc51cf7cec1941c20fc7ce1a3f754e67f89759e6401d";
         inputs[7] = "--mode";
-        inputs[8] = "bytes";
+        inputs[8] = "sign";
 
         bytes memory data = vm.ffi(inputs);
 
@@ -40,5 +40,9 @@ contract SchemaTest is Test {
 
         bytes32 hash = schema.digest(summary);
         assertEq(hash, hash_from_rust, "hash");
+
+        bool validSig = schema.validateSignature(summary);
+
+        assertTrue(validSig, "validSig");
     }
 }
