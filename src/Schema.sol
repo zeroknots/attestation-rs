@@ -113,4 +113,25 @@ contract Schema {
         );
         return keccak256(data);
     }
+
+    function validateSignature(AuditSummary memory summary) public pure returns (bool) {
+        if (summary.signature.signer == address(0)) {
+            return false;
+        }
+
+        if (summary.signature.sigType == SignatureType.None) {
+            return false;
+        }
+        if (summary.signature.hash == bytes32(0)) {
+            return false;
+        }
+
+        if (summary.signature.signatureData.length == 0) {
+            return false;
+        }
+
+        if (summary.signature.sigType == SignatureType.SECP256K1) {
+            address _signer = ECDSA.recover(summary.signature.hash, summary.signature.signatureData);
+        }
+    }
 }
