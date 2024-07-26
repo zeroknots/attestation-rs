@@ -33,6 +33,8 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
 
     let onchain_data = input.encode(SignatureType::SECP256K1, signer.address());
     println!("{:#?}", onchain_data);
+    let data_bytes = Bytes::from(onchain_data.abi_encode());
+    println!("{:?}", data_bytes);
 
     let digest = onchain_data.digest();
     println!("{:?}", digest);
