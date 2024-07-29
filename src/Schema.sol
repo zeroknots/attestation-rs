@@ -143,7 +143,11 @@ contract Schema {
             console2.logBytes(summary.signature.signatureData);
             bytes32 _digest = digest(summary);
             console2.log("hash same", _digest == summary.signature.hash);
-            address recover = ECDSA.recover(summary.signature.hash, summary.signature.signatureData);
+            bytes32 _r = bytes32(uint256(91181765093448877791072672153346532075250457633545348239646477672764849628088));
+            bytes32 _s = bytes32(uint256(7343553004683555850456342638978589027025187298616586585858472434401785059));
+            uint8 _v = uint8(0);
+
+            address recover = ecrecover(_digest, _v, _r, _s);
             console2.log(recover);
         }
     }

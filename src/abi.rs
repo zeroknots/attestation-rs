@@ -95,7 +95,7 @@ struct ModuleAttributes {
     bytes packedAttributes;
     ModuleTypeAttributes[] typeAttributes;
     bytes packedExternalDependency;
-    // uint16 ercDeps;
+    uint16[] ercDeps;
 }
 
 #[derive(Debug)]
@@ -327,6 +327,7 @@ impl ParseAttributes for JsonModuleAttributes {
                 },
             ],
             packedExternalDependency: self.external_dependency.pack(),
+            ercDeps: self.external_dependency.erc_deps.clone(),
         };
 
         module_attributes

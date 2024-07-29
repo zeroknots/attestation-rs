@@ -49,6 +49,8 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
             // let data_bytes = Bytes::from(onchain_data.abi_encode());
 
             let digest = onchain_data.signature.hash.to_vec();
+            // println!("{:?}", Bytes::from(digest.clone()));
+
 
             let signer = PrivateKeySigner::from_str(&private_key)?;
             let sig = signer.sign_message_sync(&digest)?;
