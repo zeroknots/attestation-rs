@@ -27,7 +27,7 @@
     },
     "executorAttributes": {
       "handlesUserAssets": true,
-      "noDelegateCall": true,
+      "delegateCall": true,
       "triggeredByAccount": true,
       "triggeredByRelayer": false,
       "deterministicExecution": true

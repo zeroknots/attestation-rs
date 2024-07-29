@@ -1,4 +1,4 @@
-use alloy_primitives::Bytes;
+use alloy_primitives::{Address, Bytes};
 use alloy_sol_types::SolValue;
 use clap::Parser;
 
@@ -18,7 +18,7 @@ struct Args {
     #[arg(short, long)]
     input: PathBuf,
     #[arg(short, long)]
-    private_key: String,
+    private_key: Option<String>,
     #[arg(short, long)]
     mode: String,
 }
@@ -28,11 +28,11 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
 
     // Read the JSON file
     let json_input = fs::read_to_string(args.input)?;
-    let private_key = args.private_key;
+    // let private_key = args.private_key;
 
     let input: Input = serde_json::from_str(&json_input)?;
-    let signer = PrivateKeySigner::from_str(&private_key)?;
-    let mut onchain_data = input.encode(SignatureType::SECP256K1, signer.address());
+    // let signer = PrivateKeySigner::from_str(&private_key)?;
+    let mut onchain_data = input.encode(SignatureType::SECP256K1, Address::default());
 
     match args.mode.as_str() {
         "print" => {
@@ -45,14 +45,25 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
             let data_bytes = Bytes::from(onchain_data.abi_encode());
             println!("{:?}", data_bytes);
         }
+        "hash" => {
+            let digest = onchain_data.signature.hash.to_vec();
+            println!("{:?}", Bytes::from(digest.clone()));
+        }
         "sign" => {
+
+            let private_key = args.private_key;
+
+            let input: Input = serde_json::from_str(&json_input)?;
+            let signer = PrivateKeySigner::from_str(&private_key.unwrap())?;
+            onchain_data = input.encode(SignatureType::SECP256K1, signer.address());
+
             // let data_bytes = Bytes::from(onchain_data.abi_encode());
 
             let digest = onchain_data.signature.hash.to_vec();
             // println!("{:?}", Bytes::from(digest.clone()));
 
 
-            let signer = PrivateKeySigner::from_str(&private_key)?;
+            // let signer = PrivateKeySigner::from_str(&private_key.unwrap())?;
             let sig = signer.sign_message_sync(&digest)?;
             // println!("{:?}", sig);
 

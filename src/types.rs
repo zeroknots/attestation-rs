@@ -72,8 +72,8 @@ pub struct JsonValidatorAttributes {
 pub struct JsonExecutorAttributes {
     #[serde(rename = "handlesUserAssets")]
     pub handles_user_assets: bool,
-    #[serde(rename = "noDelegateCall")]
-    pub no_delegate_call: bool,
+    #[serde(rename = "delegateCall")]
+    pub delegate_call: bool,
     #[serde(rename = "triggeredByAccount")]
     pub triggered_by_account: bool,
     #[serde(rename = "triggeredByRelayer")]

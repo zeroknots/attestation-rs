@@ -196,7 +196,7 @@ impl PackableAttributes for JsonExecutorAttributes {
     fn pack(&self) -> Bytes {
         let list = vec![
             self.handles_user_assets as u8,
-            self.no_delegate_call as u8,
+            self.delegate_call as u8,
             self.triggered_by_account as u8,
             self.triggered_by_relayer as u8,
             self.deterministic_execution as u8,
@@ -211,7 +211,7 @@ impl PackableAttributes for JsonExecutorAttributes {
         }
         Ok(Box::new(JsonExecutorAttributes {
             handles_user_assets: bytes[0] != 0,
-            no_delegate_call: bytes[1] != 0,
+            delegate_call: bytes[1] != 0,
             triggered_by_account: bytes[2] != 0,
             triggered_by_relayer: bytes[3] != 0,
             deterministic_execution: bytes[4] != 0,
