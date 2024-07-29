@@ -41,11 +41,11 @@ contract SchemaTest is Test {
         // bytes32 hash = schema.digest(summary);
         // assertEq(hash, hash_from_rust, "hash");
 
-
-        // summary.signature.signer =0xD1dcdD8e6Fe04c338aC3f76f7D7105bEcab74F77;
-        // summary.signature.hash = 0x3141fb6ec012f504c5e7ce4d441fffec5fe7fc6e070a52c7346d8ab1eacd4678;
-        // summary.signature.signatureData = hex"886e3c1b7645c56fe98501f9c16f6e46b72e80b04b59dc6401ce80bc698208e225d12a8ce34833fefd548977b06601289105b4448c8d3850b3525d6e1063ab941b";
-        console.logBytes( summary.signature.signatureData);
+        summary.signature.signer = 0xD1dcdD8e6Fe04c338aC3f76f7D7105bEcab74F77;
+        summary.signature.hash = 0xcd27fc48f1f4d6e605817b0c9b5a8a52f2d1ae87b31c65edb64846a047cdad2a;
+        summary.signature.signatureData =
+            hex"d9a389b4a84991f18fa48ae3190838df031236215967489d5baeff27838d085768a0ab4bc56d0158f575ca4ba359b7b0eac2bf6dfc7efeff740981af20f85ba11b";
+        console.logBytes(summary.signature.signatureData);
 
         bool validSig = schema.validateSignature(summary);
 

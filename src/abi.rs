@@ -351,7 +351,7 @@ impl SignAttestation for Input {
             moduleAttributes: self.module_attributes.encode(),
             signature: Signature {
                 sigType: sig_type,
-                signer,
+                signer:self.signer,
                 signatureData: Bytes::default(), // You might want to set this to actual signature data
                 hash: hash.into(),
             },

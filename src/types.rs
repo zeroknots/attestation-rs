@@ -8,6 +8,8 @@ pub struct Input {
     pub auditor: JsonAuditor,
     #[serde(rename = "reportUrl")]
     pub report_url: String,
+    #[serde(rename = "signer")]
+    pub signer: Address,
     #[serde(rename = "moduleAttributes")]
     pub module_attributes: JsonModuleAttributes,
 }
