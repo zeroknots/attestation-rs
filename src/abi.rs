@@ -530,7 +530,7 @@ mod tests {
             },
             executor_attributes: JsonExecutorAttributes {
                 handles_user_assets: true,
-                no_delegate_call: false,
+                delegate_call: false,
                 triggered_by_account: true,
                 triggered_by_relayer: false,
                 deterministic_execution: true,

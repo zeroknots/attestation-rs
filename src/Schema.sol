@@ -107,6 +107,8 @@ struct Digest {
     ModuleAttributes moduleAttributes;
 }
 
+//string foobar = "(enum ERC7579ModuleType (None,Validator,Executor,Fallback,Hook),struct ModuleTypeAttributes (ERC7579ModuleType moduleType,bytes encodedAttributes),struct ModuleAttributes (address moduleAddress,bytes packedAttributes,ModuleTypeAttributes[] typeAttributes,bytes packedExternalDependency),enum SignatureType (None,SECP256K1,ERC1271),struct Auditor (string name,string uri,string[] authors),struct Signature (SignatureType sigType,address signer,bytes signatureData,bytes32 hash),struct AuditSummary (string title,Auditor auditor,ModuleAttributes moduleAttributes,Signature signature))");
+
 contract Schema {
     using SignatureCheckerLib for address;
 
@@ -122,39 +124,9 @@ contract Schema {
     }
 
     function validateSignature(AuditSummary memory summary) public view returns (bool) {
-        // if (summary.signature.signer == address(0)) {
-        //     return false;
-        // }
-        //
-        // if (summary.signature.sigType == SignatureType.None) {
-        //     return false;
-        // }
-        // if (summary.signature.hash == bytes32(0)) {
-        //     return false;
-        // }
-        //
-        // if (summary.signature.signatureData.length == 0) {
-        //     return false;
-        // }
-
         if (summary.signature.sigType == SignatureType.SECP256K1) {
-            // console2.log("SECP256K1");
-            // console2.log(summary.signature.signer);
-            // console2.logBytes(summary.signature.signatureData);
-            // bytes32 _digest = digest(summary);
-            // console2.log("hash same", _digest == summary.signature.hash);
-            // bytes32 _r = bytes32(uint256(91181765093448877791072672153346532075250457633545348239646477672764849628088));
-            // bytes32 _s = bytes32(uint256(7343553004683555850456342638978589027025187298616586585858472434401785059));
-            // uint8 _v = uint8(0);
-            //
-            // address recover = ecrecover(_digest, _v, _r, _s);
-            console2.log(summary.signature.signer);
-
-            console2.logBytes32(summary.signature.hash);
-            console2.logBytes(summary.signature.signatureData);
             address recover =
                 ECDSA.recover(ECDSA.toEthSignedMessageHash(summary.signature.hash), summary.signature.signatureData);
-            console2.log(recover);
             return recover == summary.signature.signer;
         }
     }
