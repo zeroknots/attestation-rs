@@ -1,4 +1,4 @@
-use alloy_primitives::Address;
+use alloy_primitives::{Address, Bytes};
 use serde::{Deserialize, Serialize};
 
 // JSON input structs
@@ -12,6 +12,7 @@ pub struct Input {
     pub signer: Address,
     #[serde(rename = "moduleAttributes")]
     pub module_attributes: JsonModuleAttributes,
+    pub signature: Option<JsonSignature>,
 }
 
 #[derive(Debug, Serialize, Deserialize)]
@@ -121,4 +122,10 @@ pub struct JsonExternalDependency {
     pub zk_provers: bool,
     #[serde(rename = "ercDeps")]
     pub erc_deps: Vec<u16>,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
+pub struct JsonSignature {
+    pub hash: String,
+    pub signature: Bytes,
 }

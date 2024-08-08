@@ -450,6 +450,7 @@ dependencies = [
  "alloy-signer-local",
  "alloy-sol-types",
  "clap",
+ "hex",
  "serde",
  "serde_json",
 ]
