@@ -1,4 +1,4 @@
-use alloy_primitives::Address;
+use alloy_primitives::{Address, Bytes};
 use serde::{Deserialize, Serialize};
 
 // JSON input structs
@@ -127,5 +127,5 @@ pub struct JsonExternalDependency {
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
 pub struct JsonSignature {
     pub hash: String,
-    pub signature: String,
+    pub signature: Bytes,
 }

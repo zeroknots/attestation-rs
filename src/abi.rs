@@ -354,11 +354,8 @@ impl SignAttestation for Input {
         let signature: Bytes = self
             .signature
             .as_ref()
-            .map(|json_sig| hex_string_to_vec(&json_sig.signature).unwrap_or_default())
-            .map(Bytes::from)
+            .map(|json_sig| json_sig.signature.clone())
             .unwrap_or_else(Bytes::default);
-
-        println!("{:?}", signature);
 
         let mut summary = AuditSummary {
             title: self.title.clone(),

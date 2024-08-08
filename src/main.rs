@@ -1,6 +1,6 @@
 use alloy_primitives::{Address, Bytes};
 use alloy_sol_types::SolValue;
-use clap::Parser;
+use clap::{Parser, Subcommand};
 
 use std::path::PathBuf;
 use std::{fs, str::FromStr};
@@ -14,7 +14,21 @@ use serde_json;
 use std::fs::File;
 use std::io::Write;
 use std::path::Path;
-use std::process::Command;
+use std::process::{exit, Command};
+
+
+#[derive(Subcommand, Debug)]
+#[command(author, version, about, long_about = None)]
+enum SignerType {
+    /// Interactive mode
+    Interactive,
+
+    /// Private key mode
+    PrivateKey {
+        #[arg(short, long)]
+        private_key: String,
+    },
+}
 
 #[derive(Parser, Debug)]
 #[command(author, version, about, long_about = None)]
@@ -26,11 +40,19 @@ struct Args {
     private_key: Option<String>,
     #[arg(short, long)]
     mode: String,
-    #[arg(short, long)]
-    signer_type: Option<String>,
+    #[command(subcommand)]
+    signer_type: Option<SignerType>,
 }
 fn to_hex_string(bytes: &[u8]) -> String {
-    bytes.iter().map(|b| format!("{:02x}", b)).collect()
+    let hex: String = bytes.iter().map(|b| format!("{:02x}", b)).collect();
+    format!("0x{}", hex)
+}
+fn from_hex_string(hex_string: &str) -> Result<Vec<u8>, hex::FromHexError> {
+    // Remove "0x" prefix if present
+    let cleaned_hex = hex_string.strip_prefix("0x").unwrap_or(hex_string);
+    
+    // Use the hex crate to decode the string
+    hex::decode(cleaned_hex)
 }
 
 fn to_outfile(path_buf: &PathBuf) -> PathBuf {
@@ -90,36 +112,50 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         "cast" => {
 
             let digest = onchain_data.signature.hash.to_vec();
-            println!("{:?}", Bytes::from(digest.clone()));
+            let digest_bytes = Bytes::from(digest.clone());
+            println!("{:?}", digest_bytes);
 
-            let signer = onchain_data.signature.signer.to_string();
 
-            let signer_type = args.signer_type.unwrap();
-            let cast_type = "--".to_owned();
+            let foo = to_hex_string(&digest);
+            println!("{:?}", foo);
 
-            let param = cast_type + &signer_type;
+            let output;
 
-            println!("{:?}", param);
+            match args.signer_type{
+                Some(SignerType::PrivateKey{private_key}) => {
+                     output = Command::new("cast")
+                        .arg("wallet")
+                        .arg("sign")
+                        .arg(foo)
+                        .arg("--private-key")
+                        .arg(private_key)
+                        .output()
+                        .expect("Failed to execute command");
+                },
+                Some(SignerType::Interactive) => {
+                     output = Command::new("cast")
+                        .arg("wallet")
+                        .arg("sign")
+                        .arg(foo)
+                        .arg("--interactive")
+                        .output()
+                        .expect("Failed to execute command");
+                },
+                _ => {
+                    println!("Invalid mode");
+                    exit(-1);
+                }
+            }
 
-            let command = "cast";
-            let output = Command::new(command)
-                .arg("wallet")
-                .arg("sign")
-                .arg("--from")
-                .arg(signer)
-                .arg(to_hex_string(&digest))
-                .arg(param)
-                .output()
-                .expect("Failed to execute command");
 
-            println!("Status: {}", output.status);
-            println!("stdout: {}", String::from_utf8_lossy(&output.stdout));
-            let signature = String::from_utf8_lossy(&output.stdout);
+            let stdout = String::from_utf8_lossy(&output.stdout).into_owned();
+            let signature = stdout.trim().to_string(); // R
+            println!("{:?}", from_hex_string(&signature));
 
             let mut output = input;
             output.signature = Some(JsonSignature {
                 hash: to_hex_string(&digest),
-                signature: signature.to_string().trim().to_owned(),
+                signature: Bytes::from(from_hex_string(&signature).unwrap()),
             });
 
             println!("{:?}", output);
