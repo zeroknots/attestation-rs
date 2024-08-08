@@ -49,7 +49,6 @@ contract SchemaTest is Test {
 
         bytes32 hash_from_rust = summary.signature.hash;
 
-
         // // bytes32 hash = schema.digest(summary);
         // // assertEq(hash, hash_from_rust, "hash");
         //

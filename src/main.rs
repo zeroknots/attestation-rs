@@ -22,6 +22,8 @@ use std::process::{exit, Command};
 enum SignerType {
     /// Interactive mode
     Interactive,
+    Ledger,
+    Trezor,
 
     /// Private key mode
     PrivateKey {
@@ -137,6 +139,26 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
                         .arg("sign")
                         .arg(foo)
                         .arg("--interactive")
+                        .output()
+                        .expect("Failed to execute command");
+                },
+
+                Some(SignerType::Ledger) => {
+                     output = Command::new("cast")
+                        .arg("wallet")
+                        .arg("sign")
+                        .arg(foo)
+                        .arg("--ledger")
+                        .output()
+                        .expect("Failed to execute command");
+                },
+
+                Some(SignerType::Trezor) => {
+                     output = Command::new("cast")
+                        .arg("wallet")
+                        .arg("sign")
+                        .arg(foo)
+                        .arg("--trezor")
                         .output()
                         .expect("Failed to execute command");
                 },
