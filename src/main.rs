@@ -113,11 +113,10 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
 
             let digest = onchain_data.signature.hash.to_vec();
             let digest_bytes = Bytes::from(digest.clone());
-            println!("{:?}", digest_bytes);
+            println!("signing hash:  {:?}", digest_bytes);
 
 
             let foo = to_hex_string(&digest);
-            println!("{:?}", foo);
 
             let output;
 
@@ -150,7 +149,6 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
 
             let stdout = String::from_utf8_lossy(&output.stdout).into_owned();
             let signature = stdout.trim().to_string(); // R
-            println!("{:?}", from_hex_string(&signature));
 
             let mut output = input;
             output.signature = Some(JsonSignature {
@@ -158,12 +156,10 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
                 signature: Bytes::from(from_hex_string(&signature).unwrap()),
             });
 
-            println!("{:?}", output);
-
             // Create the outfile name and keep it in a variable
             let outfile_name_string = to_outfile(&input_path);
             let outfile_name = Path::new(&outfile_name_string);
-            println!("{:?}", outfile_name);
+            println!("written to: {:?}", outfile_name);
 
             // Create the file
             let mut file = File::create(outfile_name)?;
