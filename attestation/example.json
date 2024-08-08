@@ -1,6 +1,6 @@
 {
   "title": "FoobarModule",
-  "signer": "0x1234567890123456789012345678901234567890",
+  "signer": "0x0CdBB6d743E7b9a6106621Ea5590f7286d3fAC60",
   "auditor": {
     "name": "Ackee",
     "uri": "http://audit.corp",
@@ -19,7 +19,8 @@
       "pausable": false,
       "licensedModule": true,
       "erc7562StorageCompliant": true,
-      "uninstallCleanUp": true
+      "uninstallCleanUp": true,
+      "multichainCompatible": true
     },
     "validatorAttributes": {
       "unscopedValidator": true,

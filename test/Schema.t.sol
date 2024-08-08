@@ -16,16 +16,21 @@ contract SchemaTest is Test {
     }
 
     function test_decode() public {
+
+
         string[] memory inputs = new string[](9);
         inputs[0] = "cargo";
         inputs[1] = "run";
         inputs[2] = "--";
         inputs[3] = "--input";
-        inputs[4] = "./attestation/example2.json";
-        inputs[5] = "--private-key";
-        inputs[6] = "0x7f28531d8798eb4b4488bc51cf7cec1941c20fc7ce1a3f754e67f89759e6401d";
+        inputs[4] = "./attestation/example.json";
+        inputs[5] = "--mode";
+        inputs[5] = "sign";
         inputs[7] = "--mode";
-        inputs[8] = "sign";
+        inputs[8] = "cast";
+        inputs[8] = "--signer-type";
+        inputs[8] = "private-key";
+
 
         bytes memory data = vm.ffi(inputs);
 

@@ -1,6 +1,7 @@
 use alloy_primitives::{keccak256, Address, Bytes, B256, U256};
 use alloy_sol_types::{abi, sol};
 use alloy_sol_types::{sol_data::*, SolValue};
+use hex;
 
 use crate::types::{
     Input, JsonExecutorAttributes, JsonExternalDependency, JsonFallbackAttributes,
@@ -334,6 +335,14 @@ impl ParseAttributes for JsonModuleAttributes {
     }
 }
 
+fn hex_string_to_vec(hex_string: &str) -> Result<Vec<u8>, hex::FromHexError> {
+    // Remove "0x" prefix if present
+    let cleaned_hex = hex_string.strip_prefix("0x").unwrap_or(hex_string);
+
+    // Decode the hex string
+    hex::decode(cleaned_hex)
+}
+
 pub trait SignAttestation {
     fn encode(&self, sig_type: SignatureType, signer: Address) -> AuditSummary;
 }
@@ -341,6 +350,16 @@ pub trait SignAttestation {
 impl SignAttestation for Input {
     fn encode(&self, sig_type: SignatureType, signer: Address) -> AuditSummary {
         let mut hash: U256 = "42".parse().unwrap();
+
+        let signature: Bytes = self
+            .signature
+            .as_ref()
+            .map(|json_sig| hex_string_to_vec(&json_sig.signature).unwrap_or_default())
+            .map(Bytes::from)
+            .unwrap_or_else(Bytes::default);
+
+        println!("{:?}", signature);
+
         let mut summary = AuditSummary {
             title: self.title.clone(),
             auditor: Auditor {
@@ -351,8 +370,8 @@ impl SignAttestation for Input {
             moduleAttributes: self.module_attributes.encode(),
             signature: Signature {
                 sigType: sig_type,
-                signer:self.signer,
-                signatureData: Bytes::default(), // You might want to set this to actual signature data
+                signer: self.signer,
+                signatureData: signature,
                 hash: hash.into(),
             },
         };
