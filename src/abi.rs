@@ -149,6 +149,7 @@ impl PackableAttributes for JsonGlobalAttributes {
             self.licensed_module as u8,
             self.erc7562_storage_compliant as u8,
             self.uninstall_clean_up as u8,
+            self.multichain_compatible as u8,
         ];
         Bytes::from(list)
     }
