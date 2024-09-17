@@ -167,6 +167,7 @@ impl PackableAttributes for JsonGlobalAttributes {
             licensed_module: bytes[7] != 0,
             erc7562_storage_compliant: bytes[8] != 0,
             uninstall_clean_up: bytes[9] != 0,
+            multichain_compatible: bytes[10] != 0,
         }))
     }
 }

@@ -60,6 +60,8 @@ pub struct JsonGlobalAttributes {
     pub erc7562_storage_compliant: bool,
     #[serde(rename = "uninstallCleanUp")]
     pub uninstall_clean_up: bool,
+    #[serde(rename = "multichainCompatible")]
+    pub multichain_compatible: bool,
 }
 
 #[derive(Debug, Serialize, Deserialize, PartialEq)]
